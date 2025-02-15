@@ -7,5 +7,3 @@ struct token {
     int type;
     void *value;
 };
-
-struct token_number {};
