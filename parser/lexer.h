@@ -2,7 +2,7 @@
 
 #include "token.h"
 
-#ifndef LEXER_PANIC //override if missing
+#ifndef LEXER_PANIC
 #define LEXER_PANIC(lexer, fmt, ...)                                                           \
     do {                                                                                       \
         fprintf(stderr, "(lex): [row(%d), col(%d)] \n" fmt "\n", lexer->row, lexer->column, ##__VA_ARGS__);   \
@@ -15,7 +15,6 @@ typedef struct lexer lexer_t;
 struct lexer {
     char *chars;
     size_t seek;
-    size_t size; //unused //todo
 
     size_t column;
     size_t row;

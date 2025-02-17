@@ -2,187 +2,186 @@
 #define GRAMMAR_H
 
 //TOKEN
-#ifndef IGNORE_TOKEN_GRAMMAR
+#ifndef IGNORE_TOKEN_TYPE_GRAMMAR
   //service
-  #define TOKEN_ERR                                                                                                 (-1)
-  #define TOKEN_EOF                                                                                                  (0)
+  #define TOKEN_TYPE_EOF                                                                                                  (0)
 
   /// REGEX: [_a-zA-Z][_a-zA-Z0-9]*
-  #define TOKEN_IDENTIFIER                                                                                           (1)
+  #define TOKEN_TYPE_IDENTIFIER                                                                                           (1)
 
   //literal
   /// REGEX: ((([0-9]([_][0-9])?)*\.([0-9]([_][0-9])?)+)|([0-9]([_][0-9])?)+))
-  #define TOKEN_NUMBER                                                                                               (2)
+  #define TOKEN_TYPE_NUMBER                                                                                               (2)
   /// REGEX: (["'])(?:\\.|(?!\1).)*?\1
-  #define TOKEN_STRING                                                                                               (3)
+  #define TOKEN_TYPE_STRING                                                                                               (3)
   /// REGEX: (true|false)
-  #define TOKEN_BOOLEAN                                                                                              (4)
+  #define TOKEN_TYPE_BOOLEAN                                                                                              (4)
 
   /// REGEX: #.*\\n
-  #define TOKEN_COMMENT                                                                                             (-1)
+  #define TOKEN_TYPE_COMMENT                                                                                              (5)
 
   //declaration
   /// TOKEN: var
-  #define TOKEN_VAR                                                                                                (100)
+  #define TOKEN_TYPE_VAR                                                                                                (100)
   /// TOKEN: val
-  #define TOKEN_VAL                                                                                                (110)
+  #define TOKEN_TYPE_VAL                                                                                                (110)
   /// TOKEN: type
-  #define TOKEN_TYPE                                                                                               (120)
+  #define TOKEN_TYPE_TYPE                                                                                               (120)
   /// TOKEN: enum
-  #define TOKEN_ENUM                                                                                               (130)
+  #define TOKEN_TYPE_ENUM                                                                                               (130)
   /// TOKEN: space
-  #define TOKEN_SPACE                                                                                              (140)
+  #define TOKEN_TYPE_NAMESPACE                                                                                              (140)
   /// TOKEN: func
-  #define TOKEN_FUNC                                                                                               (150)
+  #define TOKEN_TYPE_FUNC                                                                                               (150)
 
   //branch
   /// TOKEN: if
-  #define TOKEN_IF                                                                                                 (190)
+  #define TOKEN_TYPE_IF                                                                                                 (190)
   /// TOKEN: elif
-  #define TOKEN_ELIF                                                                                               (200)
+  #define TOKEN_TYPE_ELIF                                                                                               (200)
   /// TOKEN: else
-  #define TOKEN_ELSE                                                                                               (210)
+  #define TOKEN_TYPE_ELSE                                                                                               (210)
   /// TOKEN: switch
-  #define TOKEN_SWITCH                                                                                             (220)
+  #define TOKEN_TYPE_SWITCH                                                                                             (220)
   /// TOKEN: case
-  #define TOKEN_CASE                                                                                               (230)
+  #define TOKEN_TYPE_CASE                                                                                               (230)
 
   //loop
   /// TOKEN: for
-  #define TOKEN_FOR                                                                                                (240)
+  #define TOKEN_TYPE_FOR                                                                                                (240)
   /// TOKEN: while
-  #define TOKEN_WHILE                                                                                              (250)
+  #define TOKEN_TYPE_WHILE                                                                                              (250)
   /// TOKEN: until
-  #define TOKEN_UNTIL                                                                                              (260)
+  #define TOKEN_TYPE_UNTIL                                                                                              (260)
 
   //jump
   /// TOKEN: repeat
-  #define TOKEN_REPEAT                                                                                             (270)
+  #define TOKEN_TYPE_REPEAT                                                                                             (270)
   /// TOKEN: next
-  #define TOKEN_NEXT                                                                                               (280)
+  #define TOKEN_TYPE_NEXT                                                                                               (280)
   /// TOKEN: last
-  #define TOKEN_BACK                                                                                               (290)
+  #define TOKEN_TYPE_BACK                                                                                               (290)
   /// TOKEN: stop
-  #define TOKEN_STOP                                                                                               (300)
+  #define TOKEN_TYPE_STOP                                                                                               (300)
   /// TOKEN: return
-  #define TOKEN_RETURN                                                                                             (160)
+  #define TOKEN_TYPE_RETURN                                                                                             (160)
   /// TOKEN: eject
-  #define TOKEN_EJECT                                                                                              (170)
+  #define TOKEN_TYPE_EJECT                                                                                              (170)
   /// TOKEN: yield
-  #define TOKEN_YIELD                                                                                              (180)
+  #define TOKEN_TYPE_YIELD                                                                                              (180)
 
   //exception
   /// TOKEN: try
-  #define TOKEN_TRY                                                                                                (310)
+  #define TOKEN_TYPE_TRY                                                                                                (310)
   /// TOKEN: catch
-  #define TOKEN_CATCH                                                                                              (320)
+  #define TOKEN_TYPE_CATCH                                                                                              (320)
   /// TOKEN: finally
-  #define TOKEN_FINALLY                                                                                            (330)
+  #define TOKEN_TYPE_FINALLY                                                                                            (330)
   /// TOKEN: throw
-  #define TOKEN_THROW                                                                                              (340)
+  #define TOKEN_TYPE_THROW                                                                                              (340)
 
   //brace
   /// TOKEN: (
-  #define TOKEN_PARENTHESIS_LEFT                                                                                   (400)
+  #define TOKEN_TYPE_PARENTHESIS_LEFT                                                                                   (400)
   /// TOKEN: )
-  #define TOKEN_PARENTHESIS_RIGHT                                                                                  (410)
+  #define TOKEN_TYPE_PARENTHESIS_RIGHT                                                                                  (410)
   /// TOKEN: [
-  #define TOKEN_SQUARE_BRACKET_LEFT                                                                                (420)
+  #define TOKEN_TYPE_SQUARE_BRACKET_LEFT                                                                                (420)
   /// TOKEN: ]
-  #define TOKEN_SQUARE_BRACKET_RIGHT                                                                               (430)
+  #define TOKEN_TYPE_SQUARE_BRACKET_RIGHT                                                                               (430)
   /// TOKEN: {
-  #define TOKEN_CURLY_BRACKET_LEFT                                                                                 (440)
+  #define TOKEN_TYPE_CURLY_BRACKET_LEFT                                                                                 (440)
   /// TOKEN: }
-  #define TOKEN_CURLY_BRACKET_RIGHT                                                                                (450)
+  #define TOKEN_TYPE_CURLY_BRACKET_RIGHT                                                                                (450)
   /// TOKEN: <
-  #define TOKEN_ANGEL_BRACKET_LEFT                                                                                 (460)
+  #define TOKEN_TYPE_ANGEL_BRACKET_LEFT                                                                                 (460)
   /// TOKEN: >
-  #define TOKEN_ANGEL_BRACKET_RIGHT                                                                                (470)
+  #define TOKEN_TYPE_ANGEL_BRACKET_RIGHT                                                                                (470)
 
   //arithmetic
   /// TOKEN: +
-  #define TOKEN_PLUS                                                                                               (480)
+  #define TOKEN_TYPE_PLUS                                                                                               (480)
   /// TOKEN: -
-  #define TOKEN_MINUS                                                                                              (490)
+  #define TOKEN_TYPE_MINUS                                                                                              (490)
   /// TOKEN: *
-  #define TOKEN_MULTIPLY                                                                                           (500)
+  #define TOKEN_TYPE_MULTIPLY                                                                                           (500)
   /// TOKEN: /
-  #define TOKEN_DIVIDE                                                                                             (510)
+  #define TOKEN_TYPE_DIVIDE                                                                                             (510)
   /// TOKEN: %
-  #define TOKEN_MODULUS                                                                                            (550)
+  #define TOKEN_TYPE_MODULUS                                                                                            (550)
   /// TOKEN: **
-  #define TOKEN_POWER                                                                                              (520)
+  #define TOKEN_TYPE_POWER                                                                                              (520)
   /// TOKEN: ++
-  #define TOKEN_INCREMENT                                                                                          (530)
+  #define TOKEN_TYPE_INCREMENT                                                                                          (530)
   /// TOKEN: --
-  #define TOKEN_DECREMENT                                                                                          (540)
+  #define TOKEN_TYPE_DECREMENT                                                                                          (540)
 
   //relation
   /// TOKEN: <
-  #define TOKEN_LESS                                                                            TOKEN_ANGEL_BRACKET_LEFT
+  #define TOKEN_TYPE_LESS                                                                            TOKEN_TYPE_ANGEL_BRACKET_LEFT
   /// TOKEN: <=
-  #define TOKEN_LESS_OR_EQUAL                                                                                      (700)
+  #define TOKEN_TYPE_LESS_OR_EQUAL                                                                                      (700)
   /// TOKEN: >
-  #define TOKEN_GREATER                                                                        TOKEN_ANGEL_BRACKET_RIGHT
+  #define TOKEN_TYPE_GREATER                                                                        TOKEN_TYPE_ANGEL_BRACKET_RIGHT
   /// TOKEN: >=
-  #define TOKEN_GREATER_OR_EQUAL                                                                                   (720)
+  #define TOKEN_TYPE_GREATER_OR_EQUAL                                                                                   (720)
 
   //equal
   /// TOKEN: eq | ==
-  #define TOKEN_EQ                                                                                                 (620)
+  #define TOKEN_TYPE_EQ                                                                                                 (620)
   /// TOKEN: !=
-  #define TOKEN_EQ_NOT                                                                                             (630)
+  #define TOKEN_TYPE_EQ_NOT                                                                                             (630)
   /// TOKEN: is | ===
-  #define TOKEN_IS                                                                                                 (640)
+  #define TOKEN_TYPE_IS                                                                                                 (640)
   /// TOKEN: !==
-  #define TOKEN_IS_NOT                                                                                             (650)
+  #define TOKEN_TYPE_IS_NOT                                                                                             (650)
 
   //logical
   /// TOKEN: or | |
-  #define TOKEN_OR                                                                                                 (660)
+  #define TOKEN_TYPE_OR                                                                                                 (660)
   /// TOKEN: and | &
-  #define TOKEN_AND                                                                                                (670)
+  #define TOKEN_TYPE_AND                                                                                                (670)
   /// TOKEN: not | !
-  #define TOKEN_NOT                                                                                                (680)
+  #define TOKEN_TYPE_NOT                                                                                                (680)
 
   //assign
   /// TOKEN: =
-  #define TOKEN_ASSIGN                                                                                             (730)
+  #define TOKEN_TYPE_ASSIGN                                                                                             (730)
   /// TOKEN: +=
-  #define TOKEN_ASSIGN_PLUS                                                                                        (740)
+  #define TOKEN_TYPE_ASSIGN_PLUS                                                                                        (740)
   /// TOKEN: -=
-  #define TOKEN_ASSIGN_MINUS                                                                                       (750)
+  #define TOKEN_TYPE_ASSIGN_MINUS                                                                                       (750)
   /// TOKEN: *=
-  #define TOKEN_ASSIGN_MULTIPLY                                                                                    (760)
+  #define TOKEN_TYPE_ASSIGN_MULTIPLY                                                                                    (760)
   /// TOKEN: /=
-  #define TOKEN_ASSIGN_DIVIDE                                                                                      (770)
+  #define TOKEN_TYPE_ASSIGN_DIVIDE                                                                                      (770)
   /// TOKEN: %=
-  #define TOKEN_ASSIGN_MODULUS                                                                                     (780)
+  #define TOKEN_TYPE_ASSIGN_MODULUS                                                                                     (780)
 
   //other
   /// TOKEN: ,
-  #define TOKEN_COMMA                                                                                              (560)                                                                                       (-1)
+  #define TOKEN_TYPE_COMMA                                                                                              (560)
   /// TOKEN: .
-  #define TOKEN_DOT                                                                                                (570)
+  #define TOKEN_TYPE_DOT                                                                                                (570)
   /// TOKEN: ..
-  #define TOKEN_RANGE                                                                                              (580)
+  #define TOKEN_TYPE_RANGE                                                                                              (580)
   /// TOKEN: ...
-  #define TOKEN_ELLIPSIS                                                                                           (590)
+  #define TOKEN_TYPE_ELLIPSIS                                                                                           (590)
   /// TOKEN: :
-  #define TOKEN_COLON                                                                                              (600)
+  #define TOKEN_TYPE_COLON                                                                                              (600)
   /// TOKEN: ;
-  #define TOKEN_SEMICOLON                                                                                          (610)
+  #define TOKEN_TYPE_SEMICOLON                                                                                          (610)
   /// TOKEN: @
-  #define TOKEN_DOG                                                                                                (611)
+  #define TOKEN_TYPE_DOG                                                                                                (611)
 
   //space
   /// TOKEN: ' '
-  #define TOKEN_WHITESPACE                                                                                         (800)
+  #define TOKEN_TYPE_SPACE                                                                                         (800)
   /// TOKEN: \\t
-  #define TOKEN_TAB                                                                                                (810)
+  #define TOKEN_TYPE_TAB                                                                                                (810)
   /// TOKEN: \\n
-  #define TOKEN_NEWLINE                                                                                            (820)
-#endif // IGNORE_TOKEN_GRAMMAR
+  #define TOKEN_TYPE_NEWLINE                                                                                            (820)
+#endif // IGNORE_TOKEN_TYPE_GRAMMAR
 
 
 //NODE
