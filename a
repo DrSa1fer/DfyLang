@@ -1,0 +1,54 @@
+PROJ = FILE*
+FILE = EXPRESSION*
+
+EXPRESSION      = ASSIGNMENT
+ASSIGNMENT      = BIN_OR ('=' ASSIGNMENT)?
+
+BIN_OR          = (BIN_OR  '|')?    BIN_XOR
+BIN_XOR         = (BIN_XOR '^')?    BIN_AND
+BIN_AND         = (BIN_AND '&')?    LOG_OR
+LOG_OR	 	    = (LOG_OR  'or' )?	LOG_XOR
+LOG_XOR         = (LOG_XOR 'xor')?	LOG_AND
+LOG_AND         = (LOG_AND 'and')?	EQUALITY
+
+EQUALITY	    = (EQUALITY 		('eq' | '=='  | '!=')		)? 	IDENTITY
+IDENTITY		= (IDENTITY 		('is' | '===' | '!==')		)? 	RELATION
+RELATION 		= (RELATION 		('<'  | '>' | '<=' | '>=')	)? 	SHIFT
+SHIFT			= (SHIFT 			('<<' | '<<<' | '>>> | '>>'))?	ADDICTIVE
+ADDICTIVE		= (ADDICTIVE 		('+'  | '-')				)?	MULTIPLICATIVE
+MULTIPLICATIVE	= (MULTIPLICATIVE	('*'  | '/' | '%')			)?	EXPONENTIATION
+EXPONENTIATION 	= STATEMENT			(('**' |'/*') EXPONENTIATION)?
+
+UNARY           = (('++' | '--' | '+' | '-' | '*' | '&' | '!') UNARY_L)? PRIMARY
+PRIMARY         = LITERAL | '(' EXPRESSION ')' | PRIMARY '[' EXPRESSION ']' | PRIMARY '(' EXPRESSION ')' | PRIMARY '.' PRIMARY | STATEMENT
+
+STATEMENT       = WHILE | UNTIL | FUNC | VAR | VAL | FOR | IF | SWITCH | BODY
+LITERAL 	    = BOOLEAN | NUMBER | STRING | IDENTIFIER
+
+BODY            = '{' EXPRESSION* '}' | ';'
+
+VAR = 'var' IDENTIFIER (':' IDENTIFIER)? ('=' EXPRESSION)?
+VAL = 'val'	IDENTIFIER (':' IDENTIFIER)? ('=' EXPRESSION)?
+TYPE        = 'type' IDENTIFIER (':' IDENTIFIER)? BODY
+FUNC		= 'func' IDENTIFIER FUNC_ARGS? ('>' IDENTIFIER)? BODY
+
+FUNC_ARG  	= IDENTIFIER (':' IDENTIFIER)?
+FUNC_ARGS 	= '(' FUNC_ARG (',' FUNC_ARG)* ')' | FUNC_ARG (',' FUNC_ARG)*
+
+
+FOR 		= 'for'   IDENTIFIER 'in' EXPRESSION BODY
+WHILE 		= 'while' EXPRESSION BODY
+UNTIL 		= 'until' EXPRESSION BODY
+
+IF			= 'if'	 EXPRESSION ELIF* ELSE? BODY
+ELIF		= 'elif' EXPRESSION BODY
+ELSE		= 'else' BODY
+
+SWITCH 	= 'switch' EXPRESSION BODY
+CASE 	= 'case' EXPRESSION ('when' EXPRESSION)? BODY
+
+
+func _ () > num { } * 10
+
+
+((func _ () > num { }) ** (10)) + 10

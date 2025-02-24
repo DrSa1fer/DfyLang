@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../grammar.h"
-#include "lexer.h"
+#include "include/lexer.h"
 
+/// Alloc new token and set value
+static struct token *new_token(int type, void *data);
 /// Return current symbol of lexer`s text
 static char current(const lexer_t *lexer);
 /// Advance current seek of lexer`s text
@@ -13,13 +14,23 @@ static void advance(lexer_t *lexer);
 /// Retreat current seek of lexer`s text
 static void retreat(lexer_t *lexer);
 
-struct keyword  { char *value; size_t size; int type; };
-struct operator { char *value; size_t size; int type; };
+/// Try to lex NUMBER LITERAL lexeme, return NULL if not possible
+static token_t *lex_number      (lexer_t *lexer);
+/// Try to lex STRING LITERAL lexeme, return NULL if not possible
+static token_t *lex_string      (lexer_t *lexer);
+/// Try to lex COMMENT LITERAL(TRIVIA) lexeme, return NULL if not possible
+static token_t *lex_comment     (lexer_t *lexer);
+/// Try to lex IDENTIFIER LITERAL lexeme, return NULL if not possible
+static token_t *lex_identifier  (lexer_t *lexer);
+/// Try to lex KEYWORD lexeme, return NULL if not possible
+static token_t *lex_keyword     (lexer_t *lexer);
+/// Try to lex OPERATOR lexeme, return NULL if not possible
+static token_t *lex_operator    (lexer_t *lexer);
 
-//require order by length
-static struct keyword keywords[] = {
-    {"space",  5,TOKEN_TYPE_NAMESPACE           },
+/// Set of dfy language keywords
+keyword_t keywords[] = {
     {"finally",7,TOKEN_TYPE_FINALLY             },
+    {"space",  5,TOKEN_TYPE_SPACE               },
     {"while",  5,TOKEN_TYPE_WHILE               },
     {"until",  5,TOKEN_TYPE_UNTIL               },
     {"type",   4,TOKEN_TYPE_TYPE                },
@@ -34,11 +45,10 @@ static struct keyword keywords[] = {
     {"is",     2,TOKEN_TYPE_IS                  },
     {"eq",     2,TOKEN_TYPE_EQ                  },
 };
-
-//require order by length
-static struct operator operators[] = {
+/// Set of dfy language operators
+operator_t operators[] = {
     {"===", 3, TOKEN_TYPE_IS                    },
-    {"!==", 3,TOKEN_TYPE_IS_NOT                 },
+    {"!==", 3, TOKEN_TYPE_IS_NOT                },
 
     {"==",  2, TOKEN_TYPE_EQ                    },
     {"!=",  2, TOKEN_TYPE_EQ_NOT                },
@@ -72,83 +82,50 @@ static struct operator operators[] = {
     {".",   1, TOKEN_TYPE_DOT                   },
     {",",   1, TOKEN_TYPE_COMMA                 },
 
-    {" ",   1, TOKEN_TYPE_SPACE                 },
-    {"\t",  1, TOKEN_TYPE_TAB                   },
-    {"\n",  1, TOKEN_TYPE_NEWLINE               },
-    {"\r",  1, TOKEN_TYPE_NEWLINE               },
+    {" ",   1, TOKEN_TYPE_TRIVIA_SPACE          },
+    {"\t",  1, TOKEN_TYPE_TRIVIA_TAB            },
+    {"\n",  1, TOKEN_TYPE_TRIVIA_NEWLINE        },
+    {"\r",  1, TOKEN_TYPE_TRIVIA_NEWLINE        },
     {"\0",  1, TOKEN_TYPE_EOF                   },
 };
+/// Set of dfy language literals
+literal_t literals[] = {
+    { lex_number     },
+    { lex_string     },
+    { lex_comment    },
+    { lex_identifier },
+};
 
-static size_t cached_keyword_max_len = 0;
-static size_t cached_operator_max_len = 0;
+const size_t keywords_count   = sizeof(keywords)  / sizeof(*keywords);
+const size_t operators_length = sizeof(operators) / sizeof(*operators);
+const size_t literals_count   = sizeof(literals)  / sizeof(*literals);
 
-static size_t keyword_max_len(void) {
-    if (cached_keyword_max_len > 0) {
-        return cached_keyword_max_len;
-    }
-    const size_t count = sizeof(keywords) / sizeof(*keywords);
-    for (size_t i = 0; i < count; i++) {
-        const size_t t = keywords[i].size;
-        if (t > cached_keyword_max_len) {
-            cached_keyword_max_len = t;
-        }
-    }
-    return cached_keyword_max_len;
-}
-static size_t operator_max_len(void) {
-    if (cached_operator_max_len > 0) {
-        return cached_operator_max_len;
-    }
-    const size_t count = sizeof(operators) / sizeof(*operators);
-    for (size_t i = 0; i < count; i++) {
-        const size_t t = operators[i].size;
-        if (t > cached_operator_max_len) {
-            cached_operator_max_len = t;
-        }
-    }
-    return cached_operator_max_len;
-}
-
-token_t *lex_string(lexer_t *lexer);
-token_t *lex_number(lexer_t *lexer);
-token_t *lex_boolean(lexer_t *lexer); //not implemented now.
-token_t *lex_comment(lexer_t *lexer);
-
-token_t *lex_keyword(lexer_t *lexer);
-token_t *lex_operator(lexer_t *lexer);
-
-token_t *lex_identifier(lexer_t *lexer);
-
-token_t *lex(lexer_t *lexer) {
+token_t *lex                    (lexer_t *lexer) {
     size_t size = 100;
-    size_t seek = 0;
+
     token_t *buf = malloc(sizeof(*buf) * size);
+    size_t seek = 0;
 
     if (buf == NULL) {
+        LEXER_ERROR("Out of memory");
         return NULL;
     }
 
     while(1) {
         token_t *token = NULL;
 
-        if (token == NULL) { token = lex_number     (lexer); }
-        if (token == NULL) { token = lex_comment    (lexer); }
-        if (token == NULL) { token = lex_string     (lexer); }
         if (token == NULL) { token = lex_keyword    (lexer); }
+        for (int i = 0; token == NULL && i < literals_count; i++) { token = literals[i].handler(lexer); }
         if (token == NULL) { token = lex_operator   (lexer); }
-        if (token == NULL) { token = lex_identifier (lexer); }
 
         if (token == NULL) {
-            LEXER_PANIC(lexer, "Invalid token '%c'", current(lexer));
-            advance(lexer);
-            free(buf);
-            return NULL;
+            LEXER_ERROR("Invalid char '%c'", current(lexer));
+            free(buf); return NULL;
         }
-
         if (seek >= size) {
              void *tmp = realloc(buf, sizeof(*buf) * (size *= 2));
              if (tmp == NULL) {
-                 LEXER_PANIC(lexer, "Out of memory");
+                 LEXER_ERROR("Out of memory");
                  free(buf);
                  free(token);
                  return NULL;
@@ -156,7 +133,6 @@ token_t *lex(lexer_t *lexer) {
              buf = tmp;
         }
         buf[seek++] = *token;
-
         if (token->type == TOKEN_TYPE_EOF) {
             token_t *ptr = malloc(sizeof *ptr * seek);
             if (ptr == NULL) {
@@ -174,11 +150,96 @@ token_t *lex(lexer_t *lexer) {
             free(token);
             return ptr;
         }
-
         free(token);
     }
 }
-token_t *lex_string(lexer_t *lexer) {
+token_t *lex_keyword            (lexer_t *lexer) {
+    if (isalpha(current(lexer)) == 0) { return NULL; }
+
+    for (int i = 0; i < keywords_count; i++) {
+        const struct keyword keyword = keywords[i];
+
+        int seek = 0;
+        while(seek < keyword.size + 1) {
+            if (seek == keyword.size) {
+                if (isalnum(current(lexer))) {
+                    break;
+                }
+                if (current(lexer) == '_') {
+                    break;
+                }
+                LEXER_DEBUG("KEYWORD = {%s}", keyword.value);
+                return new_token(keyword.type, NULL);
+            }
+            if (current(lexer) != keyword.value[seek]) {
+                break;
+            }
+            advance(lexer); seek++;
+        }
+        while (seek > 0) {
+            retreat(lexer); seek--;
+        }
+    }
+    return NULL;
+}
+token_t *lex_operator           (lexer_t *lexer) {
+    if (isalnum(current(lexer))) { return NULL; }
+
+    for (int i = 0; i < operators_length; i++) {
+        const struct operator operator = operators[i];
+
+        int seek = 0;
+        while(seek < operator.size + 1) {
+            if (seek == operator.size) {
+                LEXER_DEBUG("OPERATOR = {%s}", operator.value);
+                return new_token(operator.type, NULL);
+            }
+            if (current(lexer) != operator.value[seek]) {
+                break;
+            }
+            advance(lexer); seek++;
+        }
+        while (seek > 0) {
+            retreat(lexer); seek--;
+        }
+    }
+
+    return NULL;
+}
+token_t *lex_number             (lexer_t *lexer) {
+    if (!isdigit(current(lexer))) {
+        return NULL;
+    }
+    double value = 0;
+    while (isdigit(current(lexer))) {
+        value = value * 10 + (current(lexer) - '0');
+        advance(lexer);
+    }
+    if (current(lexer) == '.') {
+        advance(lexer); //skip .
+        if (isdigit(current(lexer))) {
+            double fraction = 1;
+            while (isdigit(current(lexer))) {
+                fraction /= 10;
+                value += (current(lexer) - '0') * fraction;
+                advance(lexer);
+            }
+        }
+        else {
+            retreat(lexer);
+            if (!value) {
+                return NULL;
+            }
+        }
+    }
+
+    double *data = malloc(sizeof *data);
+    *data = value;
+
+    LEXER_DEBUG("NUMBER = {%g}", value);
+    return new_token(TOKEN_TYPE_LITERAL_NUMBER, data);
+}
+token_t *lex_string             (lexer_t *lexer) {
     if (current(lexer) != '"' && current(lexer) != '\'') {
         return NULL;
     }
@@ -192,8 +253,7 @@ token_t *lex_string(lexer_t *lexer) {
     }
 
     const char open = current(lexer);
-    advance(lexer); //skip open
-
+    advance(lexer); // skip open
     while (current(lexer) != open) {
         if (current(lexer) == '\0') {
             buf[seek] = '\0';
@@ -279,7 +339,8 @@ token_t *lex_string(lexer_t *lexer) {
         buf[seek++] = current(lexer);
         advance(lexer);
     }
-    advance(lexer); //skip close
+    advance(lexer); // skip close
+
     char *ptr = malloc(sizeof *ptr * (seek + 1));
     if (ptr == NULL) {
         free(ptr);
@@ -292,49 +353,10 @@ token_t *lex_string(lexer_t *lexer) {
     ptr[seek] = '\0';
     free(buf);
 
-    token_t *token = malloc(sizeof *token);
-    token->type = TOKEN_TYPE_STRING;
-    token->value = ptr;
-    return token;
+    LEXER_DEBUG("STRING = {%s}", ptr);
+    return new_token(TOKEN_TYPE_LITERAL_STRING, ptr);
 }
-token_t *lex_number(lexer_t *lexer) {
-    if (current(lexer) != '.' &&  !isdigit(current(lexer))) {
-        return NULL;
-    }
-
-    char is_init = 0;
-    double value = 0;
-    while (isdigit(current(lexer))) {
-        value = value * 10 + (current(lexer) - '0');
-        advance(lexer);
-        is_init = 1;
-    }
-    if (current(lexer) == '.') {
-        advance(lexer); //skip .
-        if (isdigit(current(lexer))) {
-            double fraction = 1;
-            while (isdigit(current(lexer))) {
-                fraction /= 10;
-                value += (current(lexer) - '0') * fraction;
-                advance(lexer);
-            }
-        }
-        else {
-            retreat(lexer);
-            if (!is_init) {
-                return NULL;
-            }
-        }
-    }
-
-    token_t *token = malloc(sizeof *token);
-    double *ptr = malloc(sizeof *ptr);
-    *ptr = value;
-    token->type = TOKEN_TYPE_NUMBER;
-    token->value = ptr;
-    return token;
-}
-token_t *lex_comment(lexer_t *lexer) {
+token_t *lex_comment            (lexer_t *lexer) {
     if (current(lexer) != '#') {
         return NULL;
     }
@@ -375,74 +397,10 @@ token_t *lex_comment(lexer_t *lexer) {
     ptr[seek] = '\0';
     free(buf);
 
-    token_t *token = malloc(sizeof *token);
-    token->type = TOKEN_TYPE_COMMENT;
-    token->value = ptr;
-    return token;
+    LEXER_DEBUG("COMMENT = {%s}", ptr);
+    return new_token(TOKEN_TYPE_TRIVIA_COMMENT, ptr);
 }
-token_t *lex_keyword(lexer_t *lexer) {
-    const size_t max_len = keyword_max_len();
-    const size_t count = sizeof(keywords) / sizeof(*keywords);
-    char buf[max_len + 1]; memset(buf, 0, sizeof *buf);
-
-    for (int i = 0; i < max_len; i++) {
-        buf[i] = current(lexer);
-        advance(lexer);
-    }
-    buf[max_len] = '\0';
-
-    for (int i = 0; i < count; i++) {
-        const struct keyword *keyword = &keywords[i];
-        const size_t key_size = keyword->size;
-        const size_t buf_size = max_len;
-
-        if (strncmp(buf, keyword->value, key_size) == 0) {
-            for (size_t r = buf_size - key_size; r > 0; r--) {
-                retreat(lexer);
-            }
-            token_t *token = malloc(sizeof *token);
-            token->type = keyword->type;
-            token->value = NULL;
-            return token;
-        }
-    }
-    for (int i = 0; i < max_len; i++) {
-        retreat(lexer);
-    }
-    return NULL;
-}
-token_t *lex_operator(lexer_t *lexer) {
-    const size_t max_len = operator_max_len();
-    const size_t count = sizeof(operators) / sizeof(*operators);
-    char buf[max_len + 1]; memset(buf, 0, sizeof *buf);
-
-    for (int i = 0; i < max_len; i++) {
-        buf[i] = current(lexer);
-        advance(lexer);
-    }
-    buf[max_len] = '\0';
-
-    for (int i = 0; i < count; i++) {
-        const struct operator *operator = &operators[i];
-        const size_t opr_size = operator->size;
-        const size_t buf_size = max_len;
-
-        if (strncmp(buf, operator->value, opr_size) == 0) {
-            for (size_t r = buf_size - opr_size; r > 0; r--) {
-                retreat(lexer);
-            }
-            token_t *token = malloc(sizeof *token);
-            token->type = operator->type;
-            token->value = NULL;
-            return token;
-        }
-    }
-    for (int i = 0; i < max_len; i++) {
-        retreat(lexer);
-    }
-    return NULL;
-}
-token_t *lex_identifier(lexer_t *lexer) {
+token_t *lex_identifier         (lexer_t *lexer) {
     if (current(lexer) != '_' && !isalpha(current(lexer))) {
         return NULL;
     }
@@ -486,12 +444,16 @@ token_t *lex_identifier(lexer_t *lexer) {
     ptr[seek] = '\0';
     free(buf);
 
-    token_t *token = malloc(sizeof *token);
-    token->type = TOKEN_TYPE_IDENTIFIER;
-    token->value = ptr;
-    return token;
+    LEXER_DEBUG("IDENTIFIER = {%s}", ptr);
+    return new_token(TOKEN_TYPE_LITERAL_IDENTIFIER, ptr);
 }
 
+struct token *new_token(const int type, void *data) {
+    struct token *token = malloc(sizeof *token);
+    token->type = type;
+    token->data = data;
+    return token;
+}
 char current(const lexer_t *lexer) {
     return lexer->chars[lexer->seek];
 }
@@ -517,6 +479,6 @@ void advance(lexer_t *lexer) {
     lexer->seek++;
 }
 void retreat(lexer_t *lexer) {
-    lexer->column--;
     lexer->seek--;
+    lexer->column--;
 }

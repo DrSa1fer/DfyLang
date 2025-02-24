@@ -1,0 +1,3 @@
+/home/danil/Projects/dfy_lang/cmake-build-debug/CMakeFiles/dfy_lang.dir
+/home/danil/Projects/dfy_lang/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/danil/Projects/dfy_lang/cmake-build-debug/CMakeFiles/rebuild_cache.dir

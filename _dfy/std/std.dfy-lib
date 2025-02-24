@@ -1,0 +1,5 @@
+space std {
+    func build() > none {
+        
+    }
+}

@@ -1,0 +1,8 @@
+# ninja log v6
+2	65	1739288468003171288	CMakeFiles/dfy_lang.dir/parser/lexer/lexer.c.o	6d1ded5e7741f943
+5	62	1740385708213178587	build.ninja	2bd58e6940cb5cc0
+2	138	1740385700208176668	CMakeFiles/dfy_lang.dir/parser/parser.c.o	b3cdca52c44d80c8
+4	56	1739273716323552520	CMakeFiles/dfy_lang.dir/parser/tokenizer/tokenizer.c.o	2b075ba3749d6f9f
+163	195	1740385700368178186	dfy_lang	c5fd4a01669b58cf
+1	96	1740385700206178178	CMakeFiles/dfy_lang.dir/main.c.o	af1a2e7e26e97748
+2	163	1740385700207178178	CMakeFiles/dfy_lang.dir/parser/lexer.c.o	542c8727ef78d765
