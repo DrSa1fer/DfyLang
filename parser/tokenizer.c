@@ -152,8 +152,11 @@ Token_t *Tokenize   (Tokenizer_t *lexer) {
             goto append;
         }
 
+        LEXER_DEBUG("Unexpected token '%c'", Current(lexer));
         token.type = TokenTypeERR;
-
+        token.start = lexer->seek;
+        token.end   = lexer->seek;
+        Advance(lexer);
 
         append: {
             while (seek >= size) {
@@ -165,7 +168,6 @@ Token_t *Tokenize   (Tokenizer_t *lexer) {
                 }
                 buf = tmp;
             }
-
             buf[seek++] = token;
         }
     }
@@ -184,7 +186,6 @@ Token_t *Tokenize   (Tokenizer_t *lexer) {
     ptr[seek].type = TokenTypeEOF;
     return ptr;
 }
-
 
 int Tokenize_Keyword    (Tokenizer_t *lexer, Token_t *token) {
     if (isalpha(Current(lexer)) == 0) { return 0; }
