@@ -7,7 +7,7 @@ static int analyze_func_dec     (Analyzer_t *analyzer);
 static int analyze_var_dec      (Analyzer_t *analyzer);
 static int analyze_val_dec      (Analyzer_t *analyzer);
 
-int analyze(Analyzer_t *analyzer) {
+int Analyze(Analyzer_t *analyzer) {
 
     return 0;
 }

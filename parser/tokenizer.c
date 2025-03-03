@@ -153,7 +153,7 @@ Token_t *Tokenize   (Tokenizer_t *lexer) {
         }
 
         LEXER_DEBUG("Unexpected token '%c'", Current(lexer));
-        token.type = TokenTypeERR;
+        token.type  = TokenTypeERR;
         token.start = lexer->seek;
         token.end   = lexer->seek;
         Advance(lexer);

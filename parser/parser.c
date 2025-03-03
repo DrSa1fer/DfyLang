@@ -2,20 +2,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "include/ast.h"
 #include "include/parser.h"
-#include "include/ast_node.h"
 // #include "include/gc.h"
 
 /// Return current token
-static Lexeme_t current(const Parser_t *parser);
+static Token_t Current(const Parser_t *parser);
 /// Advance current token
-static void advance(Parser_t *parser);
+static void Advance(Parser_t *parser);
 /// Retreat current token
-static void retreat(Parser_t *parser);
+static void Retreat(Parser_t *parser);
 /// Advance trivia tokens
-static void advance_trivia(Parser_t *parser);
+static void AdvanceTrivia(Parser_t *parser);
 /// Retreat trivia tokens
-static void retreat_trivia(Parser_t *parser);
+static void RetreatTrivia(Parser_t *parser);
 
 static ASTNode_t *parse_file(Parser_t *parser);
 
@@ -32,7 +32,7 @@ static ASTNode_t *parse_addition                              (Parser_t *parser)
 static ASTNode_t *parse_statement                             (Parser_t *parser);
 static ASTNode_t *parse_assignment                            (Parser_t *parser);
 
-AST_t *parse(Parser_t *parser) {
+AST_t *Parse(Parser_t *parser) {
     return parse_file(parser);
 }
 ASTNode_t *parse_file(Parser_t *parser) {
@@ -45,7 +45,7 @@ ASTNode_t *parse_file(Parser_t *parser) {
         return NULL;
     }
 
-    while(current(parser).type != LexemeTypeEOF) {
+    while(Current(parser).type != TokenTypeEOF) {
         struct ASTNode *node = parse_assignment(parser);
 
         if (node == NULL) {
@@ -93,11 +93,11 @@ ASTNode_t *parse_assignment                            (Parser_t *parser) {
     ASTNode_t* const (*next)(Parser_t *parser) = parse_declaration;
 
     ASTNode_t *operand0 = next(parser);
-    advance_trivia(parser);
-    switch (current(parser).type) {
-        case LexemeTypeAssign: {
-            advance(parser); // skip =
-            advance_trivia(parser);
+    AdvanceTrivia(parser);
+    switch (Current(parser).type) {
+        case TokenTypeAssign: {
+            Advance(parser); // skip =
+            AdvanceTrivia(parser);
             ASTNode_t *operand1 = parse_assignment(parser);
 
             ASTNode_t *node = malloc(sizeof *node);
@@ -107,9 +107,9 @@ ASTNode_t *parse_assignment                            (Parser_t *parser) {
 
             return node;
         }
-        case LexemeTypeAddAssign: {
-            advance(parser); // skip +=
-            advance_trivia(parser);
+        case TokenTypeAddAssign: {
+            Advance(parser); // skip +=
+            AdvanceTrivia(parser);
             ASTNode_t *operand1 = parse_assignment(parser);
 
             ASTNode_t *node = malloc(sizeof *node);
@@ -119,9 +119,9 @@ ASTNode_t *parse_assignment                            (Parser_t *parser) {
 
             return node;
         }
-        case LexemeTypeSubAssign: {
-            advance(parser); // skip -=
-            advance_trivia(parser);
+        case TokenTypeSubAssign: {
+            Advance(parser); // skip -=
+            AdvanceTrivia(parser);
             ASTNode_t *operand1 = parse_assignment(parser);
 
             ASTNode_t *node = malloc(sizeof *node);
@@ -131,9 +131,9 @@ ASTNode_t *parse_assignment                            (Parser_t *parser) {
 
             return node;
         }
-        case LexemeTypeMulAssign: {
-            advance(parser); // skip *=
-            advance_trivia(parser);
+        case TokenTypeMulAssign: {
+            Advance(parser); // skip *=
+            AdvanceTrivia(parser);
             ASTNode_t *operand1 = parse_assignment(parser);
 
             ASTNode_t *node = malloc(sizeof *node);
@@ -143,9 +143,9 @@ ASTNode_t *parse_assignment                            (Parser_t *parser) {
 
             return node;
         }
-        case LexemeTypeDivAssign: {
-            advance(parser); // skip /=
-            advance_trivia(parser);
+        case TokenTypeDivAssign: {
+            Advance(parser); // skip /=
+            AdvanceTrivia(parser);
             ASTNode_t *operand1 = parse_assignment(parser);
 
             ASTNode_t *node = malloc(sizeof *node);
@@ -155,9 +155,9 @@ ASTNode_t *parse_assignment                            (Parser_t *parser) {
 
             return node;
         }
-        case LexemeTypeModAssign: {
-            advance(parser); // skip %=
-            advance_trivia(parser);
+        case TokenTypeModAssign: {
+            Advance(parser); // skip %=
+            AdvanceTrivia(parser);
             ASTNode_t *operand1 = parse_assignment(parser);
 
             ASTNode_t *node = malloc(sizeof *node);
@@ -188,11 +188,11 @@ ASTNode_t *parse_addition                              (Parser_t *parser) {
     ASTNode_t* const (*next)(Parser_t *parser) = parse_multiplication;
 
     ASTNode_t *operand0 = next(parser);
-    while (current(parser).type != LexemeTypeEOF) {
-        advance_trivia(parser);
-        switch(current(parser).type) {
-            case LexemeTypePlus: {
-                advance(parser); //skip +
+    while (Current(parser).type != TokenTypeEOF) {
+        AdvanceTrivia(parser);
+        switch(Current(parser).type) {
+            case TokenTypePlus: {
+                Advance(parser); //skip +
                 ASTNode_t *operand1 = next(parser);
 
                 ASTNode_t *node = malloc(sizeof *node);
@@ -203,8 +203,8 @@ ASTNode_t *parse_addition                              (Parser_t *parser) {
                 operand0 = node;
                 break;
             }
-            case LexemeTypeMinus: {
-                advance(parser); //skip -
+            case TokenTypeMinus: {
+                Advance(parser); //skip -
                 ASTNode_t *operand1 = next(parser);
 
                 ASTNode_t *node = malloc(sizeof *node);
@@ -225,11 +225,11 @@ ASTNode_t *parse_multiplication                        (Parser_t *parser) {
     ASTNode_t* const (*next)(Parser_t *parser) = parse_exponentation;
 
     ASTNode_t *operand0 = next(parser);
-    while (current(parser).type != LexemeTypeEOF) {
-        advance_trivia(parser);
-        switch(current(parser).type) {
-            case LexemeTypeMultiply: {
-                advance(parser); //skip *
+    while (Current(parser).type != TokenTypeEOF) {
+        AdvanceTrivia(parser);
+        switch(Current(parser).type) {
+            case TokenTypeMultiply: {
+                Advance(parser); //skip *
                 ASTNode_t *operand1 = next(parser);
 
                 ASTNode_t *node = malloc(sizeof *node);
@@ -240,8 +240,8 @@ ASTNode_t *parse_multiplication                        (Parser_t *parser) {
                 operand0 = node;
                 break;
             }
-            case LexemeTypeDivide: {
-                advance(parser); //skip /
+            case TokenTypeDivide: {
+                Advance(parser); //skip /
                 ASTNode_t *operand1 = next(parser);
 
                 ASTNode_t *node = malloc(sizeof *node);
@@ -252,8 +252,8 @@ ASTNode_t *parse_multiplication                        (Parser_t *parser) {
                 operand0 = node;
                 break;
             }
-            case LexemeTypeModulo: {
-                advance(parser); // skip %
+            case TokenTypeModulo: {
+                Advance(parser); // skip %
                 ASTNode_t *operand1 = next(parser);
 
                 ASTNode_t *node = malloc(sizeof *node);
@@ -274,10 +274,10 @@ ASTNode_t *parse_exponentation                         (Parser_t *parser)  {
     ASTNode_t* const (*next)(Parser_t *parser) = parse_primary;
 
     ASTNode_t *operand0 = next(parser);
-    advance_trivia(parser);
-    switch (current(parser).type) {
-        case LexemeTypeExponent: {
-            advance(parser); // skip **
+    AdvanceTrivia(parser);
+    switch (Current(parser).type) {
+        case TokenTypeExponent: {
+            Advance(parser); // skip **
             ASTNode_t *operand1 = parse_exponentation(parser);
 
             ASTNode_t *node = malloc(sizeof *node);
@@ -293,34 +293,34 @@ ASTNode_t *parse_exponentation                         (Parser_t *parser)  {
     }
 }
 ASTNode_t *parse_primary                               (Parser_t *parser) {
-    advance_trivia(parser);
+    AdvanceTrivia(parser);
     return parse_literal(parser);
 }
 ASTNode_t *parse_literal                               (Parser_t *parser) {
-    advance_trivia(parser);
-    switch (current(parser).type) {
-        case LexemeTypeIdentifier: {
-            const Lexeme_t token = current(parser);
-            advance(parser);
+    AdvanceTrivia(parser);
+    switch (Current(parser).type) {
+        case TokenTypeIdentifier: {
+            const Token_t token = Current(parser);
+            Advance(parser);
             PARSER_DEBUG("LITERAL: %s", token.data.identifier);
             ASTNode_t *node = malloc(sizeof *node);
             node->type = NODE_LIT_IDENTIFIER;
             node->identifier_lit = token.data.identifier;
             return node;
         }
-        case LexemeTypeNumber: {
-            const Lexeme_t token = current(parser);
-            PARSER_DEBUG("LITERAL: %f", token.data.dbl_number);
-            advance(parser);
+        case TokenTypeDecimal: {
+            const Token_t token = Current(parser);
+            PARSER_DEBUG("LITERAL: %f", token.data.decimal);
+            Advance(parser);
             ASTNode_t *node = malloc(sizeof *node);
             node->type = NODE_LIT_NUMBER;
-            node->decimal_lit = token.data.dbl_number;
+            node->decimal_lit = token.data.decimal;
             return node;
         }
-        case LexemeTypeString: {
-            const Lexeme_t token = current(parser);
+        case TokenTypeString: {
+            const Token_t token = Current(parser);
             PARSER_DEBUG("LITERAL: %s", token.data.string);
-            advance(parser);
+            Advance(parser);
             ASTNode_t *node = malloc(sizeof *node);
             node->type = NODE_LIT_STRING;
             node->string_lit = token.data.string;
@@ -336,36 +336,36 @@ ASTNode_t *parse_literal                               (Parser_t *parser) {
 //declarations
 
 ASTNode_t *parse_var_dec                                   (Parser_t *parser) {
-    advance_trivia(parser);
-    if (current(parser).type != LexemeTypeVar) {
+    AdvanceTrivia(parser);
+    if (Current(parser).type != TokenTypeVar) {
         return NULL;
     }
 
     char *name = NULL;
     char *type = NULL;
 
-    advance(parser);
-    advance_trivia(parser);
-    if (current(parser).type != LexemeTypeIdentifier) {
+    Advance(parser);
+    AdvanceTrivia(parser);
+    if (Current(parser).type != TokenTypeIdentifier) {
         PARSER_ERROR("Expected name of var");
         return NULL;
     }
 
-    name = current(parser).data.identifier;
+    name = Current(parser).data.identifier;
     PARSER_DEBUG("VAR NAME = {%s}", name);
-    advance(parser);
-    advance_trivia(parser);
+    Advance(parser);
+    AdvanceTrivia(parser);
 
-    if (current(parser).type == LexemeTypeColon) {
-        advance(parser);
-        advance_trivia(parser);
-        if (current(parser).type != LexemeTypeIdentifier) {
+    if (Current(parser).type == TokenTypeColon) {
+        Advance(parser);
+        AdvanceTrivia(parser);
+        if (Current(parser).type != TokenTypeIdentifier) {
             PARSER_ERROR("Expected type of var");
             return NULL;
         }
-        type = current(parser).data.identifier;
+        type = Current(parser).data.identifier;
         PARSER_DEBUG("VAR TYPE = {%s}", type);
-        advance(parser);
+        Advance(parser);
     }
 
     ASTNode_t *node = malloc(sizeof *node);
@@ -378,36 +378,36 @@ ASTNode_t *parse_var_dec                                   (Parser_t *parser) {
     return node;
 }
 ASTNode_t *parse_val_dec                                   (Parser_t *parser) {
-    advance_trivia(parser);
-    if (current(parser).type != LexemeTypeVal) {
+    AdvanceTrivia(parser);
+    if (Current(parser).type != TokenTypeVal) {
         return NULL;
     }
 
     char *name = NULL;
     char *type = NULL;
 
-    advance(parser); advance_trivia(parser);
+    Advance(parser); AdvanceTrivia(parser);
 
-    if (current(parser).type != LexemeTypeIdentifier) {
+    if (Current(parser).type != TokenTypeIdentifier) {
         PARSER_ERROR("Expected name of val");
         return NULL;
     }
 
-    name = current(parser).data.identifier;
+    name = Current(parser).data.identifier;
     PARSER_DEBUG("VAL NAME = {%s}", name);
-    advance(parser);
-    advance_trivia(parser);
+    Advance(parser);
+    AdvanceTrivia(parser);
 
-    if (current(parser).type == LexemeTypeColon) {
-        advance(parser);
-        advance_trivia(parser);
-        if (current(parser).type != LexemeTypeIdentifier) {
+    if (Current(parser).type == TokenTypeColon) {
+        Advance(parser);
+        AdvanceTrivia(parser);
+        if (Current(parser).type != TokenTypeIdentifier) {
             PARSER_ERROR("Expected type of val");
             return NULL;
         }
-        type = current(parser).data.identifier;
+        type = Current(parser).data.identifier;
         PARSER_DEBUG("VAL TYPE = {%s}", type);
-        advance(parser);
+        Advance(parser);
     }
 
     ASTNode_t *node = malloc(sizeof *node);
@@ -420,58 +420,58 @@ ASTNode_t *parse_val_dec                                   (Parser_t *parser) {
     return node;
 }
 ASTNode_t *parse_func_dec                                  (Parser_t *parser) {
-    advance_trivia(parser);
-    if (current(parser).type != LexemeTypeFunc) {
+    AdvanceTrivia(parser);
+    if (Current(parser).type != TokenTypeFunc) {
         return NULL;
     }
 
     char *name = NULL;
 
 
-    advance(parser);
-    advance_trivia(parser);
-    if (current(parser).type != LexemeTypeIdentifier) {
+    Advance(parser);
+    AdvanceTrivia(parser);
+    if (Current(parser).type != TokenTypeIdentifier) {
         PARSER_ERROR("Expected name of func");
         return NULL;
     }
 
-    name = current(parser).data.identifier;
+    name = Current(parser).data.identifier;
     PARSER_DEBUG("FUNC NAME = {%s}", name);
-    advance(parser);
-    advance_trivia(parser);
+    Advance(parser);
+    AdvanceTrivia(parser);
 
     ASTNode_t *args = NULL;
-    if (current(parser).type == LexemeTypeOpenParen) {
+    if (Current(parser).type == TokenTypeOpenParen) {
         PARSER_ERROR("Expected parenthesis left");
         return NULL;
     }
 
     char *return_type = NULL;
-    advance_trivia(parser);
-    if (current(parser).type == LexemeTypeOpenAngle) {
-        advance(parser);
-        advance_trivia(parser);
-        if (current(parser).type != LexemeTypeIdentifier) {
+    AdvanceTrivia(parser);
+    if (Current(parser).type == TokenTypeOpenAngle) {
+        Advance(parser);
+        AdvanceTrivia(parser);
+        if (Current(parser).type != TokenTypeIdentifier) {
             PARSER_ERROR("Expected return type of func");
             return NULL;
         }
-        return_type = current(parser).data.identifier;
+        return_type = Current(parser).data.identifier;
         PARSER_DEBUG("FUNC RETURN TYPE = {%s}", return_type);
-        advance(parser);
+        Advance(parser);
     }
 
     ASTNode_t *body = NULL;
-    advance_trivia(parser);
-    switch (current(parser).type) {
-        case LexemeTypeSemicolon: {
-            advance(parser);
+    AdvanceTrivia(parser);
+    switch (Current(parser).type) {
+        case TokenTypeSemicolon: {
+            Advance(parser);
             body = NULL;
             break;
         }
-        case LexemeTypeOpenCurly: {
-            while (current(parser).type != LexemeTypeCloseCurly)
-                advance(parser);
-            advance(parser);
+        case TokenTypeOpenCurly: {
+            while (Current(parser).type != TokenTypeCloseCurly)
+                Advance(parser);
+            Advance(parser);
             break;
         }
         default: {
@@ -491,30 +491,26 @@ ASTNode_t *parse_func_dec                                  (Parser_t *parser) {
     return node;
 }
 
-Lexeme_t current(const Parser_t *parser) {
+Token_t Current(const Parser_t *parser) {
     return parser->tokens[parser->seek];
 }
-void advance(Parser_t *parser) {
+void Advance(Parser_t *parser) {
     parser->seek++;
-    parser->position.x = current(parser).start.x;
-    parser->position.y = current(parser).start.y;
 }
-void retreat(Parser_t *parser) {
+void Retreat(Parser_t *parser) {
     parser->seek--;
-    parser->position.x = current(parser).start.x;
-    parser->position.y = current(parser).start.y;
 }
-void advance_trivia(Parser_t *parser) {
-    while (current(parser).type == LexemeTypeComment
-        || current(parser).type == LexemeTypeNewLineTrivia
-        || current(parser).type == LexemeTypeSpaceTrivia
-        || current(parser).type == LexemeTypeTabTrivia) { advance(parser); }
+void AdvanceTrivia(Parser_t *parser) {
+    while (Current(parser).type == TokenTypeComment
+        || Current(parser).type == TokenTypeNewLineTrivia
+        || Current(parser).type == TokenTypeSpaceTrivia
+        || Current(parser).type == TokenTypeTabTrivia) { Advance(parser); }
 }
-void retreat_trivia(Parser_t *parser) {
-    while (current(parser).type == LexemeTypeComment
-        || current(parser).type == LexemeTypeNewLineTrivia
-        || current(parser).type == LexemeTypeSpaceTrivia
-        || current(parser).type == LexemeTypeTabTrivia) { retreat(parser); }
+void RetreatTrivia(Parser_t *parser) {
+    while (Current(parser).type == TokenTypeComment
+        || Current(parser).type == TokenTypeNewLineTrivia
+        || Current(parser).type == TokenTypeSpaceTrivia
+        || Current(parser).type == TokenTypeTabTrivia) { Retreat(parser); }
 }
 
 
@@ -752,7 +748,7 @@ void retreat_trivia(Parser_t *parser) {
 //
 //
 // node_t *parse_identifier(parser_t *parser) {
-//     if (current(parser).type != LexemeTypeIdentifier) {
+//     if (current(parser).type != TokenTypeIdentifier) {
 //         return NULL;
 //     }
 //     struct node_identifier *op = malloc(sizeof *op);

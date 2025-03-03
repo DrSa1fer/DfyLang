@@ -1,9 +1,10 @@
 #pragma once
 
-#include "ast_node.h"
+#include "ast.h"
 
 typedef struct Analyzer {
     AST_t *ast;
+    Scope_t *scope;
 } Analyzer_t;
 
-int analyze(Analyzer_t *analyzer);
+int Analyze(Analyzer_t *analyzer);
