@@ -1,7 +1,7 @@
 #pragma once
 
-#include "token.h"
-#include "node.h"
+#include "ast_node.h"
+#include "lexeme.h"
 
 #ifndef PARSER_LOG
 
@@ -14,12 +14,11 @@
 
 #endif
 
-struct parser;
-typedef struct parser parser_t;
-
-struct parser {
-    token_t *tokens;
+typedef struct SyntaxAnalyzer {
+    Lexeme_t *tokens;
     size_t seek;
-};
 
-node_t *parse(parser_t *parser);
+    position_t position;
+} SyntaxAnalyzer;
+
+AST_t *parse(SyntaxAnalyzer *parser);
